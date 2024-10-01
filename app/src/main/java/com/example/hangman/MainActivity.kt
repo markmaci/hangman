@@ -26,24 +26,30 @@ import androidx.compose.ui.unit.sp
 import com.example.hangman.ui.theme.HangmanTheme
 
 class MainActivity : ComponentActivity() {
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             HangmanTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    HangmanGameScreen()
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    HangmanGameScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
 }
 
-@Composable
-fun HangmanGameScreen() {
-    val configuration = LocalConfiguration.current
+data class GameState(
+    val wordList: List<String>,
+    val wordToGuess: MutableState<String>,
+    val guessedLetters: MutableState<Set<Char>>,
+    val wrongGuesses: MutableState<Int>,
+    val hintClicks: MutableState<Int>
+)
 
+@Composable
+fun HangmanGameScreen(modifier: Modifier = Modifier) {
+    val configuration = LocalConfiguration.current
     val gameState = rememberGameState()
 
     if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -56,8 +62,10 @@ fun HangmanGameScreen() {
 @Composable
 fun LandscapeLayout(gameState: GameState) {
     Row(modifier = Modifier.fillMaxSize()) {
-        Panel1_Letters(gameState, modifier = Modifier.weight(1f))
-        Panel2_HintButton(gameState, modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+            Panel1_Letters(gameState, modifier = Modifier.weight(2f))
+            Panel2_HintButton(gameState, modifier = Modifier.weight(1f))
+        }
         Panel3_GamePlay(gameState, modifier = Modifier.weight(1f))
     }
 }
@@ -87,44 +95,36 @@ fun rememberGameState(): GameState {
     )
 }
 
-data class GameState(
-    val wordList: List<String>,
-    val wordToGuess: MutableState<String>,
-    val guessedLetters: MutableState<Set<Char>>,
-    val wrongGuesses: MutableState<Int>,
-    val hintClicks: MutableState<Int>
-)
-
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun Panel1_Letters(gameState: GameState, modifier: Modifier = Modifier) {
     var selectedLetter by remember { mutableStateOf<Char?>(null) }
     val letters = ('A'..'Z').toList()
 
     Column(modifier = modifier.padding(8.dp)) {
-        FlowRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
-            letters.forEach { letter ->
-                val isEnabled = !gameState.guessedLetters.value.contains(letter)
-                val isSelected = selectedLetter == letter
-                Button(
-                    onClick = { selectedLetter = letter },
-                    enabled = isEnabled,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.width(50.dp)
-                ) {
-                    Text(
-                        text = letter.toString(),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+        val rows = letters.chunked(7)
+
+        rows.forEach { rowLetters ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                rowLetters.forEach { letter ->
+                    val isEnabled = !gameState.guessedLetters.value.contains(letter)
+                    val isSelected = selectedLetter == letter
+                    Button(
+                        onClick = { selectedLetter = letter },
+                        enabled = isEnabled,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                            contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                        ),
+                        modifier = Modifier.width(50.dp)
+                    ) {
+                        Text(
+                            text = letter.toString(),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
             }
         }
@@ -134,9 +134,8 @@ fun Panel1_Letters(gameState: GameState, modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 selectedLetter?.let { letter ->
-                    gameState.guessedLetters.value = gameState.guessedLetters.value + letter
-                    if (gameState.wordToGuess.value.contains(letter)) {
-                    } else {
+                    gameState.guessedLetters.value += letter
+                    if (!gameState.wordToGuess.value.contains(letter)) {
                         gameState.wrongGuesses.value++
                     }
                     selectedLetter = null
@@ -175,13 +174,14 @@ fun Panel2_HintButton(gameState: GameState, modifier: Modifier = Modifier) {
                             !gameState.guessedLetters.value.contains(it) &&
                                     !gameState.wordToGuess.value.contains(it)
                         }
+
                         val lettersToDisable = remainingLetters.shuffled().take(remainingLetters.size / 2)
-                        gameState.guessedLetters.value = gameState.guessedLetters.value + lettersToDisable
+                        gameState.guessedLetters.value += lettersToDisable
                         gameState.wrongGuesses.value++
                     }
                     3 -> {
                         val vowels = listOf('A', 'E', 'I', 'O', 'U')
-                        gameState.guessedLetters.value = gameState.guessedLetters.value + vowels
+                        gameState.guessedLetters.value += vowels
                         gameState.wrongGuesses.value++
                     }
                     else -> {
