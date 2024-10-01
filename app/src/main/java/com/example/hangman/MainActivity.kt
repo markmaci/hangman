@@ -75,17 +75,17 @@ fun PortraitLayout(gameState: GameState) {
     Column(modifier = Modifier.fillMaxSize()) {
         Panel3_GamePlay(gameState, modifier = Modifier.weight(2f))
         Panel1_Letters(gameState, modifier = Modifier.weight(1f))
-        Panel2_HintButton(gameState, modifier = Modifier.weight(1f))
+        Panel2_HintButton(gameState, modifier = Modifier.weight(0.5f))
     }
 }
 
 @Composable
 fun rememberGameState(): GameState {
-    val wordList = listOf("KOTLIN", "HANGMAN", "DEVELOPER")
+    val wordList = listOf("PAINTING", "NBA", "FITREC")
     val wordHint = listOf(
-        "Language used to code this project",
-        "The name of this game",
-        "A person who engineers a product"
+        "Type of drawing that is hung up",
+        "A very famous sports league",
+        "A spot on campus where people exercise"
         )
     val randomIndex = rememberSaveable { (wordList.indices).random() }
     val initialWord = rememberSaveable { mutableStateOf(wordList[randomIndex]) }
