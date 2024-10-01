@@ -151,7 +151,7 @@ fun Panel1_Letters(gameState: GameState, modifier: Modifier = Modifier) {
                     selectedLetter = null
                 }
             },
-            enabled = selectedLetter != null,
+            enabled = selectedLetter != null && (gameState.wrongGuesses.value < 6),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text(text = "Submit Guess")
