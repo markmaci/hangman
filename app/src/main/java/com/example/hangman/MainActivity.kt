@@ -41,10 +41,12 @@ class MainActivity : ComponentActivity() {
 
 data class GameState(
     val wordList: List<String>,
-    val wordToGuess: MutableState<String>,
-    val guessedLetters: MutableState<Set<Char>>,
-    val wrongGuesses: MutableState<Int>,
-    val hintClicks: MutableState<Int>
+    val wordHints: List<String>,
+    var wordToGuess: MutableState<String>,
+    var wordHint: MutableState<String>,
+    var guessedLetters: MutableState<Set<Char>>,
+    var wrongGuesses: MutableState<Int>,
+    var hintClicks: MutableState<Int>
 )
 
 @Composable
@@ -75,20 +77,30 @@ fun PortraitLayout(gameState: GameState) {
     Column(modifier = Modifier.fillMaxSize()) {
         Panel3_GamePlay(gameState, modifier = Modifier.weight(2f))
         Panel1_Letters(gameState, modifier = Modifier.weight(1f))
+        Panel2_HintButton(gameState, modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
 fun rememberGameState(): GameState {
-    val wordList = listOf("COMPOSE", "ANDROID", "KOTLIN", "HANGMAN", "DEVELOPER")
-    val initialWord = rememberSaveable { mutableStateOf(wordList.random()) }
+    val wordList = listOf("KOTLIN", "HANGMAN", "DEVELOPER")
+    val wordHint = listOf(
+        "Language used to code this project",
+        "The name of this game",
+        "A person who engineers a product"
+        )
+    val randomIndex = rememberSaveable { (wordList.indices).random() }
+    val initialWord = rememberSaveable { mutableStateOf(wordList[randomIndex]) }
+    val initialHint = rememberSaveable { mutableStateOf(wordHint[randomIndex]) }
     val guessedLetters = rememberSaveable { mutableStateOf(setOf<Char>()) }
     val wrongGuesses = rememberSaveable { mutableStateOf(0) }
     val hintClicks = rememberSaveable { mutableStateOf(0) }
 
     return GameState(
         wordList = wordList,
+        wordHints = wordHint,
         wordToGuess = initialWord,
+        wordHint = initialHint,
         guessedLetters = guessedLetters,
         wrongGuesses = wrongGuesses,
         hintClicks = hintClicks
@@ -152,6 +164,7 @@ fun Panel1_Letters(gameState: GameState, modifier: Modifier = Modifier) {
 @Composable
 fun Panel2_HintButton(gameState: GameState, modifier: Modifier = Modifier) {
     val context = LocalContext.current
+    var hintText by remember { mutableStateOf("No hints given yet") }
 
     Column(
         modifier = modifier
@@ -167,7 +180,7 @@ fun Panel2_HintButton(gameState: GameState, modifier: Modifier = Modifier) {
                 gameState.hintClicks.value++
                 when (gameState.hintClicks.value) {
                     1 -> {
-                        Toast.makeText(context, "This is your hint message!", Toast.LENGTH_SHORT).show()
+                        hintText = gameState.wordHint.value
                     }
                     2 -> {
                         val remainingLetters = ('A'..'Z').filter {
@@ -192,6 +205,12 @@ fun Panel2_HintButton(gameState: GameState, modifier: Modifier = Modifier) {
         }) {
             Text(text = "Hint")
         }
+
+        Text(
+            text = hintText,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 16.dp)
+        )
     }
 }
 
