@@ -229,10 +229,14 @@ fun Panel3_GamePlay(gameState: GameState, modifier: Modifier = Modifier) {
 
         Button(
             onClick = {
-                gameState.wordToGuess.value = gameState.wordList.random()
+                val randomIndex = gameState.wordList.indices.random()
+
+                gameState.wordToGuess.value = gameState.wordList[randomIndex]
+                gameState.wordHint.value = gameState.wordHints[randomIndex]
                 gameState.guessedLetters.value = setOf()
                 gameState.wrongGuesses.value = 0
                 gameState.hintClicks.value = 0
+
             },
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
