@@ -81,11 +81,11 @@ fun PortraitLayout(gameState: GameState) {
 
 @Composable
 fun rememberGameState(): GameState {
-    val wordList = listOf("KOTLIN", "HANGMAN", "DEVELOPER")
+    val wordList = listOf("PAINTING", "NBA", "FITREC")
     val wordHint = listOf(
-        "Language used to code this project",
-        "The name of this game",
-        "A person who engineers a product"
+        "Type of drawing that is hung up",
+        "A very famous sports league",
+        "A spot on campus where people exercise"
         )
     val randomIndex = rememberSaveable { (wordList.indices).random() }
     val initialWord = rememberSaveable { mutableStateOf(wordList[randomIndex]) }
