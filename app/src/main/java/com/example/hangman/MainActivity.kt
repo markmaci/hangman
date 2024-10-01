@@ -75,7 +75,7 @@ fun PortraitLayout(gameState: GameState) {
     Column(modifier = Modifier.fillMaxSize()) {
         Panel3_GamePlay(gameState, modifier = Modifier.weight(2f))
         Panel1_Letters(gameState, modifier = Modifier.weight(1f))
-        Panel2_HintButton(gameState, modifier = Modifier.weight(1f))
+        Panel2_HintButton(gameState, modifier = Modifier.weight(0.5f))
     }
 }
 
